@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>On Your Forehead</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --ink:#181410;
+            --paper:#EDE6D8;
+            --sticky:#F2C14E;
+            --marker:#C1452F;
+            --faded:#5B7B93;
+            --rule:rgba(24,20,16,.18);
+        }
+        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+        html,body{height:100%;}
+        body{
+            background:var(--paper);
+            color:var(--ink);
+            font-family:"Archivo",system-ui,sans-serif;
+            display:flex;
+            align-items:stretch;
+            justify-content:center;
+            overflow:hidden;
+        }
+        /* faint paper tooth */
+        body::before{
+            content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+            background-image:radial-gradient(circle at 1px 1px, rgba(24,20,16,.05) 1px, transparent 0);
+            background-size:5px 5px;
+        }
+        #app{
+            position:relative;z-index:1;
+            width:100%;max-width:560px;
+            padding:24px 22px calc(24px + env(safe-area-inset-bottom));
+            display:flex;flex-direction:column;
+        }
+        .screen{display:none;flex:1;flex-direction:column;}
+        .screen.on{display:flex;}
+
+        h1{
+            font-family:"Archivo Black",sans-serif;
+            text-transform:uppercase;
+            line-height:.86;
+            letter-spacing:-.02em;
+            font-size:clamp(44px,13vw,74px);
+        }
+        h1 .lo{display:block;color:var(--marker);}
+        .sub{
+            margin-top:18px;font-size:16px;line-height:1.5;max-width:38ch;
+            color:rgba(24,20,16,.78);
+        }
+        .eyebrow{
+            font-family:"Space Mono",monospace;
+            font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+            color:var(--faded);
+        }
+        .spacer{flex:1;min-height:20px;}
+
+        button{
+            font-family:"Archivo",sans-serif;font-weight:600;font-size:17px;
+            border:2px solid var(--ink);border-radius:0;
+            padding:16px 20px;width:100%;
+            background:var(--sticky);color:var(--ink);
+            cursor:pointer;
+            box-shadow:4px 4px 0 var(--ink);
+            transition:transform .06s ease, box-shadow .06s ease;
+        }
+        button:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+        button:focus-visible{outline:3px solid var(--faded);outline-offset:3px;}
+        button.ghost{background:transparent;box-shadow:none;border-color:var(--rule);}
+        button.ghost:active{transform:none;}
+        button + button{margin-top:10px;}
+        button[disabled]{opacity:.45;cursor:default;}
+
+        /* ---- setup ---- */
+        .clue-box{
+            border:2px solid var(--ink);
+            background:#fff;
+            padding:18px;
+            margin-top:8px;
+        }
+        .clue-box .eyebrow{margin-bottom:8px;}
+        .clue-text{
+            font-family:"Archivo Black",sans-serif;
+            text-transform:uppercase;
+            font-size:clamp(22px,6vw,30px);
+            line-height:1.05;
+        }
+        .links{margin-top:20px;}
+        .linkrow{
+            display:flex;align-items:center;gap:12px;
+            border-top:1px solid var(--rule);
+            padding:14px 0;
+        }
+        .linkrow:last-child{border-bottom:1px solid var(--rule);}
+        .who{
+            font-family:"Space Mono",monospace;font-weight:700;
+            font-size:12px;letter-spacing:.1em;
+            white-space:nowrap;
+        }
+        .linkrow button{width:auto;flex:1;padding:12px 14px;font-size:14px;box-shadow:3px 3px 0 var(--ink);}
+        .warn{
+            margin-top:16px;font-size:13px;line-height:1.5;
+            color:var(--marker);font-weight:600;
+        }
+
+        /* ---- reveal ---- */
+        #reveal{
+            position:fixed;inset:0;z-index:10;
+            background:var(--ink);color:var(--paper);
+            display:none;
+            transform:rotate(180deg);   /* the signature: readable to the person facing you */
+            padding:28px 22px;
+        }
+        #reveal.on{display:flex;flex-direction:column;}
+        #reveal .top{
+            display:flex;justify-content:space-between;align-items:baseline;
+            font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.16em;
+            text-transform:uppercase;color:rgba(237,230,216,.5);
+        }
+        .portrait{
+            flex:1;margin:20px 0;
+            border:2px solid rgba(237,230,216,.25);
+            display:flex;align-items:center;justify-content:center;
+            overflow:hidden;background:#0f0c09;
+            min-height:0;
+        }
+        .portrait img{width:100%;height:100%;object-fit:cover;display:block;}
+        .portrait .none{
+            font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;
+            text-transform:uppercase;color:rgba(237,230,216,.35);text-align:center;padding:20px;
+        }
+        #revealName{
+            font-family:"Archivo Black",sans-serif;text-transform:uppercase;
+            font-size:clamp(34px,10vw,58px);line-height:.92;letter-spacing:-.02em;
+            color:var(--sticky);
+        }
+        #revealClue{
+            margin-top:14px;font-size:15px;line-height:1.45;
+            color:rgba(237,230,216,.72);
+            border-top:1px solid rgba(237,230,216,.2);padding-top:14px;
+        }
+        #reveal button{
+            margin-top:22px;background:transparent;color:var(--paper);
+            border-color:rgba(237,230,216,.35);box-shadow:none;
+        }
+        .flip-hint{
+            position:fixed;left:0;right:0;bottom:0;z-index:11;
+            transform:rotate(180deg);
+            text-align:center;padding:14px;
+            font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.14em;
+            text-transform:uppercase;color:rgba(237,230,216,.3);
+            display:none;
+        }
+        .flip-hint.on{display:block;}
+
+        .toast{
+            position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+            background:var(--ink);color:var(--paper);
+            font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.08em;
+            padding:12px 18px;z-index:50;
+            opacity:0;pointer-events:none;transition:opacity .2s;
+        }
+        .toast.on{opacity:1;}
+
+        @media (prefers-reduced-motion:reduce){
+            *{transition:none!important;}
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <!-- HOME -->
+    <section class="screen on" id="home">
+        <p class="eyebrow">A two-phone party game</p>
+        <div class="spacer"></div>
+        <h1>On Your<span class="lo">Forehead</span></h1>
+        <p class="sub">Two characters, one connection. You each hold a phone to your head. You can't see yours. They can't see theirs. Ask yes-or-no questions until someone cracks.</p>
+        <div class="spacer"></div>
+        <button id="dealBtn">Deal a pair</button>
+    </section>
+
+    <!-- SETUP -->
+    <section class="screen" id="setup">
+        <p class="eyebrow">Round dealt</p>
+        <div class="spacer"></div>
+
+        <div class="clue-box">
+            <p class="eyebrow">The link between you</p>
+            <p class="clue-text" id="setupClue"></p>
+        </div>
+
+        <div class="links">
+            <div class="linkrow">
+                <span class="who">P1</span>
+                <button data-p="1">Send Player 1's link</button>
+            </div>
+            <div class="linkrow">
+                <span class="who">P2</span>
+                <button data-p="2">Send Player 2's link</button>
+            </div>
+        </div>
+
+        <p class="warn">Send each link to its player, then open only your own. Opening the other one spoils your own answer.</p>
+
+        <div class="spacer"></div>
+        <button class="ghost" id="reDeal">Deal a different pair</button>
+    </section>
+
+    <!-- HOLD (pre-reveal, so you don't glimpse it) -->
+    <section class="screen" id="hold">
+        <p class="eyebrow">Your character is ready</p>
+        <div class="spacer"></div>
+        <h1>Don't<span class="lo">Look</span></h1>
+        <p class="sub">Turn the screen away from your face, press and hold it to your forehead, then tap. Whatever you do, don't peek — it's right there.</p>
+        <div class="spacer"></div>
+        <button id="showBtn">I'm holding it up — reveal</button>
+    </section>
+
+</div>
+
+<!-- REVEAL: full screen, upside down so your partner reads it -->
+<div id="reveal">
+    <div class="top">
+        <span id="revealWho">Player</span>
+        <span>they guess this</span>
+    </div>
+    <div class="portrait" id="portrait"></div>
+    <h2 id="revealName"></h2>
+    <p id="revealClue"></p>
+    <button id="doneBtn">End round</button>
+</div>
+<p class="flip-hint" id="flipHint">Screen faces out · text reads correctly to them</p>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ------------------------------------------------------------------
+       PAIRS. Each pair = two characters + the clue that links them.
+       Add your own freely — the array is the whole content model.
+    ------------------------------------------------------------------ */
+    const PAIRS = [
+        ["Sonic the Hedgehog","Grover","You are both blue"],
+        ["Shrek","The Hulk","You are both big and green"],
+        ["Gandalf","Dumbledore","You are both old wizards with beards"],
+        ["Batman","Iron Man","You are both rich men with no superpowers"],
+        ["Naruto Uzumaki","Goku","You are both loud orange-clad idiots who got very strong"],
+        ["Darth Vader","Simba","You both have serious father issues"],
+        ["Homer Simpson","Peter Griffin","You are both cartoon dads with dumb laughs"],
+        ["Scooby-Doo","Snoopy","You are both very famous dogs"],
+        ["Mario","Luigi","You are both plumbers, but one of you is taller"],
+        ["Woody","Buzz Lightyear","You are both toys who don't get along at first"],
+        ["Walter White","Tony Soprano","You are both TV antiheroes who lie to their families"],
+        ["Hermione Granger","Lisa Simpson","You are both the smartest one in the room"],
+        ["Pikachu","Charizard","You are both Pokémon, but one of you is far more marketable"],
+        ["Spock","Data","You are both Star Trek characters who struggle with emotion"],
+        ["Michael Scott","David Brent","You are both the same terrible boss"],
+        ["The Avengers","The Justice League","You are both groups"],
+        ["Eleven","Carrie White","You both have telekinesis and a rough childhood"],
+        ["Wall-E","R2-D2","You are both beeping robots who can't speak"],
+        ["Levi Ackerman","Wolverine","You are both short, angry, and extremely good at cutting things"],
+        ["Kermit the Frog","Mickey Mouse","You are both a company's mascot"],
+        ["Light Yagami","Dexter Morgan","You are both smug killers who think they're the good guy"],
+        ["Bilbo Baggins","Frodo Baggins","You are both hobbits who took the same ring on a walk"],
+        ["Marge Simpson","Wilma Flintstone","You are both cartoon wives with iconic hair"],
+        ["Neo","John Wick","You are both Keanu Reeves"],
+        ["Deadpool","Bugs Bunny","You both talk directly to the audience"],
+        ["Ash Ketchum","Ted Mosby","You are both perpetually failing to reach your goal for years"],
+        ["Spirited Away's Chihiro","Alice","You both fell into a strange world and want to go home"],
+        ["Thanos","Voldemort","You are both villains obsessed with collecting objects"],
+        ["Elsa","Sub-Zero","You both do ice"],
+        ["Saitama","Superman","You are both far too powerful for it to be interesting"],
+        ["The Cookie Monster","Garfield","You are both defined entirely by one food"],
+        ["Sherlock Holmes","Gregory House","You are both brilliant, rude, and addicted to something"],
+        ["Vegeta","Draco Malfoy","You are both the rich rival who eventually becomes tolerable"],
+        ["Yoda","Master Roshi","You are both tiny old martial arts teachers"],
+        ["Rocky Balboa","Daniel LaRusso","You both won a fight in a movie about training montages"],
+        ["Hannibal Lecter","The Joker","You are both terrifying, articulate, and locked up"],
+        ["Nemo","Ariel","You both live underwater and disobey your father"],
+        ["Indiana Jones","Lara Croft","You both raid tombs for a living"],
+        ["Totoro","Big Bird","You are both large and beloved by children"],
+        ["Tony Stark","Bruce Wayne","You are both billionaires in a suit of armour"],
+        ["Frankenstein's Monster","Pinocchio","You were both made, not born, and want to be real"],
+        ["Bart Simpson","Dennis the Menace","You are both a menace with a slingshot"],
+        ["Katniss Everdeen","Legolas","You are both very good with a bow"],
+        ["Kirby","Pac-Man","You both survive entirely by eating things"],
+        ["Gollum","Dobby","You are both small, wretched, and obsessed with an item of clothing or jewellery"],
+        ["Optimus Prime","Iron Giant","You are both huge good robots who sacrifice yourselves"],
+        ["Bugs Bunny","Jerry","You are both the small one who always wins"],
+        ["Anakin Skywalker","Macbeth","You were both good until a prophecy went to your head"],
+        ["Ron Swanson","Hank Hill","You are both men with very strong opinions about propane and meat"],
+        ["Edward Scissorhands","Wolverine","You both have blades for hands"],
+        ["Sailor Moon","Wonder Woman","You are both iconic female heroes with a tiara"],
+        ["Rick Sanchez","Doc Brown","You are both mad scientists with a time-travelling vehicle"],
+        ["Jack Sparrow","Luffy","You are both pirate captains in a silly hat"],
+        ["Mr. Bean","Charlie Chaplin","You are both comedians who barely speak"],
+        ["The Terminator","RoboCop","You are both cyborg cops from the eighties"],
+        ["Eeyore","Marvin the Paranoid Android","You are both clinically depressed"],
+        ["Aang","Korra","You are both the Avatar"],
+        ["Lightning McQueen","Speed Racer","You are both a racing car protagonist"],
+        ["Willy Wonka","Ronald McDonald","You both sell food and are deeply unsettling"],
+        ["Godzilla","King Kong","You are both giant monsters who fought each other"],
+        ["Bob Ross","Mister Rogers","You are both the gentlest man on television"],
+        ["Beetlejuice","Genie","You are both chaotic spirits who grant wishes badly"],
+        ["Spider-Man","Ant-Man","You are both named after a bug"],
+        ["Tintin","Nancy Drew","You are both teenage detectives"],
+        ["Gordon Ramsay","Remy the Rat","You are both chefs who yell about food"],
+        ["The Grinch","Ebenezer Scrooge","You both hate Christmas until you don't"],
+        ["Pennywise","The Babadook","You are both a monster in a children's story"],
+        ["Bender","C-3PO","You are both shiny sarcastic robots"],
+        ["Legolas","Hawkeye","You are both the archer on a team of stronger people"],
+        ["Sasuke Uchiha","Zuko","You both defected over your brother and your dad, then came back"],
+        ["Cruella de Vil","Miranda Priestly","You are both terrifying women in the fashion world"],
+        ["Ash Williams","Ripley","You both fight monsters and lose people you like"],
+        ["Winnie the Pooh","Yogi Bear","You are both bears who want food they shouldn't have"],
+        ["Freddy Krueger","Jason Voorhees","You are both slasher villains with a signature weapon"],
+        ["Doraemon","Felix the Cat","You are both cats with a magic bag"],
+        ["Vision","Data","You are both androids trying to be human"],
+        ["Peter Parker","Clark Kent","You are both reporters with a secret"],
+        ["Hiccup","Daenerys Targaryen","You both ride a dragon"],
+        ["Popeye","Asterix","You both get super strength from a substance"],
+        ["Tyler Durden","The Joker","You are both an agent of chaos with a philosophy"],
+        ["Lisa Simpson","Daria Morgendorffer","You are both the smart cynical girl in a dumb town"],
+        ["Ariel","Elsa","You are both princesses with a signature power ballad"],
+        ["Frodo","Sam","You are both hobbits who walked to Mordor"],
+        ["Boba Fett","Predator","You are both bounty hunters in a helmet"],
+        ["Snow White","Sleeping Beauty","You both fell asleep and got kissed about it"],
+        ["Cartman","Peter Griffin","You are both fat, loud, and the worst person in the show"],
+        ["Bruce Lee","Neo","You both said 'I know kung fu' in one way or another"],
+        ["The Mandalorian","Batman","You both adopted a small orphan and never take the mask off"],
+        ["SpongeBob","Patrick Star","You are both sea creatures and best friends"],
+        ["Voldemort","Sauron","You are both a dark lord who lost your body"],
+        ["Nick Fury","Professor X","You both recruit gifted people into a team"],
+        ["Sailor Moon","Usagi Tsukino","You are the same person and you're going to feel silly"],
+        ["Guts","Kratos","You are both extremely angry men with a giant weapon"],
+        ["Winnie the Pooh","Paddington","You are both English bears who love a specific food"],
+        ["Bane","Darth Vader","You are both huge villains with a breathing problem"],
+        ["Belle","Hermione Granger","You both love books more than people"],
+        ["Zoro","Kenshin Himura","You are both swordsmen in an anime with a distinctive scar or hair"],
+        ["Timon","Pumbaa","You are both the comic-relief duo in the same film"],
+        ["Han Solo","Malcolm Reynolds","You are both roguish captains of a beat-up spaceship"],
+        ["The Doctor","Rick Sanchez","You both travel time with a reluctant companion"],
+        ["Ferris Bueller","Tom Sawyer","You both skipped out on your responsibilities and got away with it"]
+    ];
+
+    /* ---------- state ---------- */
+    let current = null;
+    let myRole = null;
+
+    /* ---------- helpers ---------- */
+    const $ = id => document.getElementById(id);
+    const screens = ["home","setup","hold"];
+    function show(id){ screens.forEach(s => $(s).classList.toggle("on", s===id)); }
+    function toast(msg){
+        const t = $("toast"); t.textContent = msg; t.classList.add("on");
+        clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 1800);
+    }
+
+    /* Encode a round into a URL. Player 1's link carries the character
+       Player 1 must GUESS — which is PAIRS[i][0]. Neither link contains
+       the other person's answer, so an accidental open only spoils yourself. */
+    function makeLink(pairIndex, role){
+        const [a,b,clue] = PAIRS[pairIndex];
+        const mine = role === 1 ? a : b;
+        const payload = btoa(unescape(encodeURIComponent(JSON.stringify({n:mine, c:clue, r:role}))));
+        return location.origin + location.pathname + "#" + payload;
+    }
+    function readLink(){
+        if(!location.hash || location.hash.length < 2) return null;
+        try{
+            return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+        }catch(e){ return null; }
+    }
+
+    async function share(url, label){
+        if(navigator.share){
+            try{ await navigator.share({title:"On Your Forehead", text:label, url}); return; }
+            catch(e){ if(e.name === "AbortError") return; }
+        }
+        try{ await navigator.clipboard.writeText(url); toast("Link copied — paste it to them"); }
+        catch(e){ prompt("Copy this link:", url); }
+    }
+
+    /* Wikipedia lead image, with a clean text-only fallback. */
+    async function loadPortrait(name){
+        const box = $("portrait");
+        box.innerHTML = '<p class="none">Loading likeness…</p>';
+        try{
+            const r = await fetch(
+                "https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(name),
+                {headers:{Accept:"application/json"}}
+            );
+            if(!r.ok) throw 0;
+            const d = await r.json();
+            const src = (d.originalimage && d.originalimage.source) || (d.thumbnail && d.thumbnail.source);
+            if(!src) throw 0;
+            const img = new Image();
+            img.alt = "";                      // name is already on screen
+            img.onload = () => { box.innerHTML = ""; box.appendChild(img); };
+            img.onerror = () => { box.innerHTML = '<p class="none">No picture found — the name will do</p>'; };
+            img.src = src;
+        }catch(e){
+            box.innerHTML = '<p class="none">No picture found — the name will do</p>';
+        }
+    }
+
+    /* ---------- deal flow (the phone that starts the round) ---------- */
+    function deal(){
+        const i = Math.floor(Math.random() * PAIRS.length);
+        current = i;
+        $("setupClue").textContent = PAIRS[i][2];
+        show("setup");
+    }
+    $("dealBtn").onclick = deal;
+    $("reDeal").onclick = deal;
+
+    document.querySelectorAll(".linkrow button").forEach(b => {
+        b.onclick = () => {
+            const role = Number(b.dataset.p);
+            share(makeLink(current, role), "Player " + role + " — open only this one");
+        };
+    });
+
+    /* ---------- receive flow (the phone that opens a link) ---------- */
+    const incoming = readLink();
+    if(incoming){
+        myRole = incoming;
+        show("hold");
+    }
+
+    $("showBtn").onclick = () => {
+        $("revealWho").textContent = "Player " + myRole.r;
+        $("revealName").textContent = myRole.n;
+        $("revealClue").textContent = myRole.c;
+        $("reveal").classList.add("on");
+        $("flipHint").classList.add("on");
+        loadPortrait(myRole.n);
+    };
+
+    $("doneBtn").onclick = () => {
+        $("reveal").classList.remove("on");
+        $("flipHint").classList.remove("on");
+        location.hash = "";
+        location.reload();
+    };
+</script>
+</body>
+</html>
