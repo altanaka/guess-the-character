@@ -70,18 +70,6 @@
 </head>
 <body>
 <div id="app">
-    <section class="screen" id="config">
-        <p class="eyebrow">One-time setup</p><div class="spacer"></div>
-        <h1>Add your<span class="lo">Keys</span></h1>
-        <p class="sub">Paste your Supabase URL and anon key, plus your TMDB API key. Saved on this device only.</p>
-        <label>Supabase project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">
-        <label>Supabase anon key</label><input id="cfgKey" placeholder="eyJ..." autocomplete="off">
-        <label>TMDB API key (v3)</label><input id="cfgTmdb" placeholder="TMDB key" autocomplete="off">
-        <div class="spacer"></div>
-        <button id="cfgSave">Save & continue</button>
-        <p class="err" id="cfgErr"></p>
-    </section>
-
     <section class="screen" id="home">
         <p class="eyebrow">A party guessing game</p><div class="spacer"></div>
         <h1>On Your<span class="lo">Forehead</span></h1>
@@ -140,28 +128,25 @@
 <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     const $ = id => document.getElementById(id);
-    const SCREENS = ["config","home","join","lobby","hold"];
+    const SCREENS = ["home","join","lobby","hold"];
     function show(id){ SCREENS.forEach(s=>$(s).classList.toggle("on",s===id)); }
     function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"),1800); }
     const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
     function uuid(){return crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=="x"?r:(r&0x3|0x8);return v.toString(16)});}
 
     let CLIENT_ID=store.get("fh_client"); if(!CLIENT_ID){CLIENT_ID=uuid();store.set("fh_client",CLIENT_ID);}
-    let TMDB=store.get("fh_tmdb")||"";
+    // ---- Hardcoded config -------------------------------------------------------
+    // Supabase URL + publishable key are safe in client code by design; your RLS
+    // policies and security-definer functions are the real boundary. Fill these in.
+    const SUPABASE_URL = "https://vurpvdkasehnmkhgklqd.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_KGwiJ0t0yGqWwYuV2zs1vQ_pxNhmD9e";
+    // The TMDB key is NOT here — it lives server-side in the tmdb-image Edge Function.
+    const TMDB_FN = SUPABASE_URL + "/functions/v1/tmdb-image";
 
-    let sb=null;
-    function initClient(){const url=store.get("fh_url"),key=store.get("fh_key");if(!url||!key||!store.get("fh_tmdb"))return false;sb=createClient(url,key,{realtime:{params:{eventsPerSecond:5}}});TMDB=store.get("fh_tmdb");return true;}
+    let sb=createClient(SUPABASE_URL,SUPABASE_KEY,{realtime:{params:{eventsPerSecond:5}}});
 
     let sessionId=null,playerId=null,code=null,isHost=false,channel=null,lastStatus=null,myChar=null,hideNames=false;
 
-    $("cfgSave").onclick=()=>{
-        const url=$("cfgUrl").value.trim().replace(/\/+$/,""),key=$("cfgKey").value.trim(),tm=$("cfgTmdb").value.trim();
-        if(!/^https:\/\/.+\.supabase\.co$/.test(url)){$("cfgErr").textContent="That doesn't look like a Supabase URL.";return;}
-        if(key.length<20){$("cfgErr").textContent="That anon key looks too short.";return;}
-        if(tm.length<10){$("cfgErr").textContent="That TMDB key looks too short.";return;}
-        store.set("fh_url",url);store.set("fh_key",key);store.set("fh_tmdb",tm);
-        if(initClient())show("home");
-    };
 
     // hide-names toggle
     let hideChoice=false;
@@ -220,6 +205,12 @@
 
     async function onSessionChange(row){
         lastStatus=row.status;
+        if(row.status==="ended"){
+            if(channel){sb.removeChannel(channel);channel=null;}
+            sessionId=playerId=code=null;isHost=false;lastStatus=null;
+            show("home");toast("The host ended the game");
+            return;
+        }
         if(row.status==="active"){await enterRound();}
         else if(row.status==="lobby"){hideReveal();show("lobby");await refreshRoster();}
     }
@@ -233,13 +224,11 @@
                 const d=await r.json();
                 return (d.originalimage&&d.originalimage.source)||(d.thumbnail&&d.thumbnail.source)||null;
             } else {
-                // TMDB: search movie/tv -> poster; fallback person -> profile
-                const kind=(mtype==="tv")?"tv":(mtype==="movie")?"movie":"person";
-                const u="https://api.themoviedb.org/3/search/"+kind+"?api_key="+encodeURIComponent(TMDB)+"&query="+encodeURIComponent(q);
-                const r=await fetch(u);if(!r.ok)return null;
-                const d=await r.json();const hit=(d.results||[])[0];if(!hit)return null;
-                const path=hit.poster_path||hit.profile_path||hit.backdrop_path;
-                return path?("https://image.tmdb.org/t/p/w780"+path):null;
+                // TMDB via Edge Function: the TMDB key stays server-side.
+                const r=await fetch(TMDB_FN,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({q,mtype})});
+                if(!r.ok)return null;
+                const d=await r.json();
+                return d.image||null;
             }
         }catch(e){return null;}
     }
@@ -268,7 +257,11 @@
         $("lobbyNote").textContent=isHost?"Start once your second player has joined.":"";
     };
 
-    $("leaveBtn").onclick=async()=>{if(channel){sb.removeChannel(channel);channel=null;}sessionId=playerId=code=null;isHost=false;lastStatus=null;show("home");};
+    $("leaveBtn").onclick=async()=>{
+        try{ await sb.rpc("leave_session",{p_session_id:sessionId,p_client_id:CLIENT_ID}); }catch(e){}
+        if(channel){sb.removeChannel(channel);channel=null;}
+        sessionId=playerId=code=null;isHost=false;lastStatus=null;show("home");
+    };
 
     /* ---------- round ---------- */
     async function enterRound(){
@@ -300,7 +293,7 @@
     function hideReveal(){$("reveal").classList.remove("on");$("endhint").classList.remove("on");$("portrait").innerHTML="";}
     $("reveal").addEventListener("dblclick",async()=>{if(!isHost){toast("Only the host can end the round");return;}await sb.rpc("end_round",{p_session_id:sessionId,p_client_id:CLIENT_ID});});
 
-    if(initClient())show("home");else show("config");
+    show("home");
 </script>
 </body>
 </html>
