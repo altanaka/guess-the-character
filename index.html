@@ -177,7 +177,7 @@
         const {data,error}=await sb.rpc("create_session",{p_client_id:CLIENT_ID,p_name:name,p_hide_names:hideChoice});
         $("createBtn").disabled=false;
         if(error){$("homeErr").textContent=error.message;return;}
-        const r=data[0];sessionId=r.session_id;code=r.code;playerId=r.player_id;isHost=true;hideNames=hideChoice;
+        const r=data[0];sessionId=r.sid;code=r.code;playerId=r.player_id;isHost=true;hideNames=hideChoice;
         enterLobby();
     };
 
@@ -189,7 +189,7 @@
         const {data,error}=await sb.rpc("join_session",{p_code:c,p_client_id:CLIENT_ID,p_name:name});
         $("joinBtn").disabled=false;
         if(error){$("joinErr").textContent=error.message;return;}
-        const r=data[0];sessionId=r.session_id;playerId=r.player_id;isHost=r.is_host;code=c;hideNames=r.hide_names;
+        const r=data[0];sessionId=r.sid;playerId=r.player_id;isHost=r.is_host;code=c;hideNames=r.hide_names;
         enterLobby();
     };
 
