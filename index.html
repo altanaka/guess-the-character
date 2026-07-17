@@ -8,599 +8,299 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root{
-            --ink:#181410;
-            --paper:#EDE6D8;
-            --sticky:#F2C14E;
-            --marker:#C1452F;
-            --faded:#5B7B93;
-            --rule:rgba(24,20,16,.18);
-        }
+        :root{--ink:#181410;--paper:#EDE6D8;--sticky:#F2C14E;--marker:#C1452F;--faded:#5B7B93;--rule:rgba(24,20,16,.18);}
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
         html,body{height:100%;}
-        body{
-            background:var(--paper);
-            color:var(--ink);
-            font-family:"Archivo",system-ui,sans-serif;
-            display:flex;
-            align-items:stretch;
-            justify-content:center;
-            overflow:hidden;
-        }
-        /* faint paper tooth */
-        body::before{
-            content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-            background-image:radial-gradient(circle at 1px 1px, rgba(24,20,16,.05) 1px, transparent 0);
-            background-size:5px 5px;
-        }
-        #app{
-            position:relative;z-index:1;
-            width:100%;max-width:560px;
-            padding:24px 22px calc(24px + env(safe-area-inset-bottom));
-            display:flex;flex-direction:column;
-        }
+        body{background:var(--paper);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;display:flex;align-items:stretch;justify-content:center;overflow:hidden;}
+        body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(circle at 1px 1px,rgba(24,20,16,.05) 1px,transparent 0);background-size:5px 5px;}
+        #app{position:relative;z-index:1;width:100%;max-width:560px;padding:24px 22px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;}
         .screen{display:none;flex:1;flex-direction:column;}
         .screen.on{display:flex;}
-
-        h1{
-            font-family:"Archivo Black",sans-serif;
-            text-transform:uppercase;
-            line-height:.86;
-            letter-spacing:-.02em;
-            font-size:clamp(44px,13vw,74px);
-        }
+        h1{font-family:"Archivo Black",sans-serif;text-transform:uppercase;line-height:.86;letter-spacing:-.02em;font-size:clamp(40px,12vw,68px);}
         h1 .lo{display:block;color:var(--marker);}
-        .sub{
-            margin-top:18px;font-size:16px;line-height:1.5;max-width:38ch;
-            color:rgba(24,20,16,.78);
-        }
-        .eyebrow{
-            font-family:"Space Mono",monospace;
-            font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-            color:var(--faded);
-        }
-        .spacer{flex:1;min-height:20px;}
-
-        button{
-            font-family:"Archivo",sans-serif;font-weight:600;font-size:17px;
-            border:2px solid var(--ink);border-radius:0;
-            padding:16px 20px;width:100%;
-            background:var(--sticky);color:var(--ink);
-            cursor:pointer;
-            box-shadow:4px 4px 0 var(--ink);
-            transition:transform .06s ease, box-shadow .06s ease;
-        }
+        .sub{margin-top:16px;font-size:15px;line-height:1.5;max-width:40ch;color:rgba(24,20,16,.78);}
+        .eyebrow{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faded);}
+        .spacer{flex:1;min-height:16px;}
+        label{display:block;font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faded);margin:16px 0 6px;}
+        input{width:100%;font-family:"Archivo",sans-serif;font-size:17px;padding:14px;border:2px solid var(--ink);background:#fff;border-radius:0;}
+        input:focus{outline:3px solid var(--faded);outline-offset:2px;}
+        input.code{font-family:"Space Mono",monospace;font-weight:700;letter-spacing:.3em;text-transform:uppercase;}
+        button{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px;border:2px solid var(--ink);border-radius:0;padding:16px 20px;width:100%;background:var(--sticky);color:var(--ink);cursor:pointer;box-shadow:4px 4px 0 var(--ink);transition:transform .06s,box-shadow .06s;}
         button:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
         button:focus-visible{outline:3px solid var(--faded);outline-offset:3px;}
         button.ghost{background:transparent;box-shadow:none;border-color:var(--rule);}
         button.ghost:active{transform:none;}
-        button + button{margin-top:10px;}
-        button[disabled]{opacity:.45;cursor:default;}
-
-        /* ---- setup ---- */
-        .clue-box{
-            border:2px solid var(--ink);
-            background:#fff;
-            padding:18px;
-            margin-top:8px;
-        }
-        .clue-box .eyebrow{margin-bottom:8px;}
-        .clue-text{
-            font-family:"Archivo Black",sans-serif;
-            text-transform:uppercase;
-            font-size:clamp(22px,6vw,30px);
-            line-height:1.05;
-        }
-        .links{margin-top:20px;}
-        .linkrow{
-            display:flex;align-items:center;gap:12px;
-            border-top:1px solid var(--rule);
-            padding:14px 0;
-        }
-        .linkrow:last-child{border-bottom:1px solid var(--rule);}
-        .who{
-            font-family:"Space Mono",monospace;font-weight:700;
-            font-size:12px;letter-spacing:.1em;
-            white-space:nowrap;
-        }
-        .linkrow button{width:auto;flex:1;padding:12px 14px;font-size:14px;box-shadow:3px 3px 0 var(--ink);}
-        .warn{
-            margin-top:16px;font-size:13px;line-height:1.5;
-            color:var(--marker);font-weight:600;
-        }
-
-        /* ---- reveal ---- */
-        #reveal{
-            position:fixed;inset:0;z-index:10;
-            background:var(--ink);color:var(--paper);
-            display:none;
-            transform:rotate(180deg);   /* the signature: readable to the person facing you */
-            padding:28px 22px;
-        }
+        button+button{margin-top:10px;}
+        button[disabled]{opacity:.45;cursor:default;box-shadow:2px 2px 0 var(--ink);}
+        .toggle{display:flex;align-items:center;gap:12px;border:2px solid var(--ink);background:#fff;padding:14px;margin-top:14px;cursor:pointer;}
+        .toggle .box{width:24px;height:24px;border:2px solid var(--ink);flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;}
+        .toggle.on .box{background:var(--sticky);}
+        .toggle .txt{font-size:14px;line-height:1.35;}
+        .toggle .txt b{display:block;font-size:15px;}
+        .codecard{border:2px solid var(--ink);background:#fff;padding:18px;margin-top:8px;text-align:center;}
+        .codecard .eyebrow{margin-bottom:8px;}
+        .bigcode{font-family:"Space Mono",monospace;font-weight:700;font-size:clamp(40px,14vw,64px);letter-spacing:.24em;padding-left:.24em;}
+        .roster{margin-top:20px;}
+        .roster .eyebrow{margin-bottom:10px;}
+        .prow{display:flex;align-items:center;gap:12px;border-top:1px solid var(--rule);padding:12px 0;}
+        .prow:last-child{border-bottom:1px solid var(--rule);}
+        .pdot{width:10px;height:10px;background:var(--faded);border-radius:50%;flex:none;}
+        .pname{font-size:16px;font-weight:600;}
+        .ptag{margin-left:auto;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faded);}
+        .note{margin-top:14px;font-size:13px;line-height:1.5;color:rgba(24,20,16,.7);}
+        .err{margin-top:14px;font-size:13px;line-height:1.5;color:var(--marker);font-weight:600;min-height:1em;}
+        .clue-box{border:2px solid var(--ink);background:#fff;padding:16px;margin-top:14px;}
+        .clue-box .eyebrow{margin-bottom:6px;}
+        .clue-text{font-family:"Archivo Black",sans-serif;text-transform:uppercase;font-size:clamp(20px,5.5vw,28px);line-height:1.05;}
+        #reveal{position:fixed;inset:0;z-index:10;background:var(--ink);color:var(--paper);display:none;transform:rotate(180deg);padding:28px 22px;}
         #reveal.on{display:flex;flex-direction:column;}
-        #reveal .top{
-            display:flex;justify-content:space-between;align-items:baseline;
-            font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.16em;
-            text-transform:uppercase;color:rgba(237,230,216,.5);
-        }
-        .portrait{
-            flex:1;margin:20px 0;
-            border:2px solid rgba(237,230,216,.25);
-            display:flex;align-items:center;justify-content:center;
-            overflow:hidden;background:#0f0c09;
-            min-height:0;
-        }
+        #reveal .top{display:flex;justify-content:space-between;align-items:baseline;font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(237,230,216,.5);}
+        .portrait{flex:1;margin:18px 0;border:2px solid rgba(237,230,216,.25);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0f0c09;min-height:0;}
         .portrait img{width:100%;height:100%;object-fit:cover;display:block;}
-        .portrait .none{
-            font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;
-            text-transform:uppercase;color:rgba(237,230,216,.35);text-align:center;padding:20px;
-        }
-        #revealName{
-            font-family:"Archivo Black",sans-serif;text-transform:uppercase;
-            font-size:clamp(34px,10vw,58px);line-height:.92;letter-spacing:-.02em;
-            color:var(--sticky);
-        }
-        #revealClue{
-            margin-top:14px;font-size:15px;line-height:1.45;
-            color:rgba(237,230,216,.72);
-            border-top:1px solid rgba(237,230,216,.2);padding-top:14px;
-        }
-        #reveal button{
-            margin-top:22px;background:transparent;color:var(--paper);
-            border-color:rgba(237,230,216,.35);box-shadow:none;
-        }
-        .flip-hint{
-            position:fixed;left:0;right:0;bottom:0;z-index:11;
-            transform:rotate(180deg);
-            text-align:center;padding:14px;
-            font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.14em;
-            text-transform:uppercase;color:rgba(237,230,216,.3);
-            display:none;
-        }
-        .flip-hint.on{display:block;}
-
-        .toast{
-            position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
-            background:var(--ink);color:var(--paper);
-            font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.08em;
-            padding:12px 18px;z-index:50;
-            opacity:0;pointer-events:none;transition:opacity .2s;
-        }
+        .portrait .none{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,230,216,.35);text-align:center;padding:20px;}
+        #revealName{font-family:"Archivo Black",sans-serif;text-transform:uppercase;font-size:clamp(30px,9vw,52px);line-height:.92;letter-spacing:-.02em;color:var(--sticky);}
+        #revealName.hidden{display:none;}
+        #revealClue{margin-top:12px;font-size:15px;line-height:1.45;color:rgba(237,230,216,.72);border-top:1px solid rgba(237,230,216,.2);padding-top:12px;}
+        .endhint{transform:rotate(180deg);position:fixed;left:0;right:0;bottom:0;text-align:center;padding:12px;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(237,230,216,.3);z-index:11;display:none;}
+        .endhint.on{display:block;}
+        .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.08em;padding:12px 18px;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s;}
         .toast.on{opacity:1;}
-
-        @media (prefers-reduced-motion:reduce){
-            *{transition:none!important;}
-        }
+        @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
     </style>
 </head>
 <body>
 <div id="app">
-
-    <!-- HOME -->
-    <section class="screen on" id="home">
-        <p class="eyebrow">A two-phone party game</p>
+    <section class="screen" id="config">
+        <p class="eyebrow">One-time setup</p><div class="spacer"></div>
+        <h1>Add your<span class="lo">Keys</span></h1>
+        <p class="sub">Paste your Supabase URL and anon key, plus your TMDB API key. Saved on this device only.</p>
+        <label>Supabase project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">
+        <label>Supabase anon key</label><input id="cfgKey" placeholder="eyJ..." autocomplete="off">
+        <label>TMDB API key (v3)</label><input id="cfgTmdb" placeholder="TMDB key" autocomplete="off">
         <div class="spacer"></div>
+        <button id="cfgSave">Save & continue</button>
+        <p class="err" id="cfgErr"></p>
+    </section>
+
+    <section class="screen" id="home">
+        <p class="eyebrow">A party guessing game</p><div class="spacer"></div>
         <h1>On Your<span class="lo">Forehead</span></h1>
-        <p class="sub">Two characters, one connection. You each hold a phone to your head. You can't see yours. They can't see theirs. Ask yes-or-no questions until someone cracks.</p>
+        <p class="sub">Start a game, share the code, one friend joins. The picture is the clue — you hold it to your head, they guess who you are.</p>
+        <label>Your name</label><input id="homeName" maxlength="18" placeholder="e.g. Alex" autocomplete="off">
+        <div class="toggle" id="hideToggle"><div class="box" id="hideBox"></div>
+            <div class="txt"><b>Hide names</b>Show only the picture — no name underneath. Harder.</div></div>
         <div class="spacer"></div>
-        <button id="dealBtn">Deal a pair</button>
+        <button id="createBtn">Start a new game</button>
+        <button class="ghost" id="toJoin">Join with a code</button>
+        <p class="err" id="homeErr"></p>
     </section>
 
-    <!-- SETUP -->
-    <section class="screen" id="setup">
-        <p class="eyebrow">Round dealt</p>
+    <section class="screen" id="join">
+        <p class="eyebrow">Join a game</p><div class="spacer"></div>
+        <h1>Got a<span class="lo">Code?</span></h1>
+        <label>Your name</label><input id="joinName" maxlength="18" placeholder="e.g. Sam" autocomplete="off">
+        <label>Session code</label><input id="joinCode" class="code" maxlength="5" placeholder="XXXXX" autocomplete="off">
         <div class="spacer"></div>
-
-        <div class="clue-box">
-            <p class="eyebrow">The link between you</p>
-            <p class="clue-text" id="setupClue"></p>
-        </div>
-
-        <div class="links">
-            <div class="linkrow">
-                <span class="who">P1</span>
-                <button data-p="1">Send Player 1's link</button>
-            </div>
-            <div class="linkrow">
-                <span class="who">P2</span>
-                <button data-p="2">Send Player 2's link</button>
-            </div>
-        </div>
-
-        <p class="warn">Send each link to its player, then open only your own. Opening the other one spoils your own answer.</p>
-
-        <div class="spacer"></div>
-        <button class="ghost" id="reDeal">Deal a different pair</button>
+        <button id="joinBtn">Join game</button>
+        <button class="ghost" id="backHome">Back</button>
+        <p class="err" id="joinErr"></p>
     </section>
 
-    <!-- HOLD (pre-reveal, so you don't glimpse it) -->
+    <section class="screen" id="lobby">
+        <p class="eyebrow" id="lobbyRole">Lobby</p>
+        <div class="codecard"><p class="eyebrow">Share this code</p><div class="bigcode" id="lobbyCode">—</div></div>
+        <div class="roster"><p class="eyebrow">Players</p><div id="rosterList"></div></div>
+        <p class="note" id="lobbyNote"></p>
+        <div class="spacer"></div>
+        <button id="startBtn">Start round</button>
+        <button class="ghost" id="leaveBtn">Leave game</button>
+        <p class="err" id="lobbyErr"></p>
+    </section>
+
     <section class="screen" id="hold">
-        <p class="eyebrow">Your character is ready</p>
+        <p class="eyebrow">Round on — the clue links you both</p>
+        <div class="clue-box"><p class="eyebrow">The link between you</p><p class="clue-text" id="holdClue"></p></div>
         <div class="spacer"></div>
         <h1>Don't<span class="lo">Look</span></h1>
-        <p class="sub">Turn the screen away from your face, press and hold it to your forehead, then tap. Whatever you do, don't peek — it's right there.</p>
+        <p class="sub">Turn the screen away from your face and press it to your forehead, then tap. Your partner reads it right-side up.</p>
         <div class="spacer"></div>
         <button id="showBtn">I'm holding it up — reveal</button>
     </section>
-
 </div>
 
-<!-- REVEAL: full screen, upside down so your partner reads it -->
 <div id="reveal">
-    <div class="top">
-        <span id="revealWho">Player</span>
-        <span>they guess this</span>
-    </div>
+    <div class="top"><span id="revealWho">You</span><span>they guess this</span></div>
     <div class="portrait" id="portrait"></div>
     <h2 id="revealName"></h2>
     <p id="revealClue"></p>
-    <button id="doneBtn">End round</button>
 </div>
-<p class="flip-hint" id="flipHint">Screen faces out · text reads correctly to them</p>
-
+<p class="endhint" id="endhint">Host: double-tap to end the round</p>
 <div class="toast" id="toast"></div>
 
-<script>
-    /* ------------------------------------------------------------------
-       PAIRS. Each pair = two characters + the clue that links them.
-       Add your own freely — the array is the whole content model.
-    ------------------------------------------------------------------ */
-    const PAIRS = [
-        ["Sonic the Hedgehog","Grover","You are both blue"],
-        ["Shrek","The Hulk","You are both big and green"],
-        ["Gandalf","Dumbledore","You are both old wizards with beards"],
-        ["Batman","Iron Man","You are both rich men with no superpowers"],
-        ["Naruto Uzumaki","Goku","You are both loud orange-clad idiots who got very strong"],
-        ["Darth Vader","Simba","You both have serious father issues"],
-        ["Homer Simpson","Peter Griffin","You are both cartoon dads with dumb laughs"],
-        ["Scooby-Doo","Snoopy","You are both very famous dogs"],
-        ["Mario","Luigi","You are both plumbers, but one of you is taller"],
-        ["Woody","Buzz Lightyear","You are both toys who don't get along at first"],
-        ["Walter White","Tony Soprano","You are both TV antiheroes who lie to their families"],
-        ["Hermione Granger","Lisa Simpson","You are both the smartest one in the room"],
-        ["Pikachu","Charizard","You are both Pokémon, but one of you is far more marketable"],
-        ["Spock","Data","You are both Star Trek characters who struggle with emotion"],
-        ["Michael Scott","David Brent","You are both the same terrible boss"],
-        ["The Avengers","The Justice League","You are both groups"],
-        ["Eleven","Carrie White","You both have telekinesis and a rough childhood"],
-        ["Wall-E","R2-D2","You are both beeping robots who can't speak"],
-        ["Levi Ackerman","Wolverine","You are both short, angry, and extremely good at cutting things"],
-        ["Kermit the Frog","Mickey Mouse","You are both a company's mascot"],
-        ["Light Yagami","Dexter Morgan","You are both smug killers who think they're the good guy"],
-        ["Bilbo Baggins","Frodo Baggins","You are both hobbits who took the same ring on a walk"],
-        ["Marge Simpson","Wilma Flintstone","You are both cartoon wives with iconic hair"],
-        ["Neo","John Wick","You are both Keanu Reeves"],
-        ["Deadpool","Bugs Bunny","You both talk directly to the audience"],
-        ["Ash Ketchum","Ted Mosby","You are both perpetually failing to reach your goal for years"],
-        ["Spirited Away's Chihiro","Alice","You both fell into a strange world and want to go home"],
-        ["Thanos","Voldemort","You are both villains obsessed with collecting objects"],
-        ["Elsa","Sub-Zero","You both do ice"],
-        ["Saitama","Superman","You are both far too powerful for it to be interesting"],
-        ["The Cookie Monster","Garfield","You are both defined entirely by one food"],
-        ["Sherlock Holmes","Gregory House","You are both brilliant, rude, and addicted to something"],
-        ["Vegeta","Draco Malfoy","You are both the rich rival who eventually becomes tolerable"],
-        ["Yoda","Master Roshi","You are both tiny old martial arts teachers"],
-        ["Rocky Balboa","Daniel LaRusso","You both won a fight in a movie about training montages"],
-        ["Hannibal Lecter","The Joker","You are both terrifying, articulate, and locked up"],
-        ["Nemo","Ariel","You both live underwater and disobey your father"],
-        ["Indiana Jones","Lara Croft","You both raid tombs for a living"],
-        ["Totoro","Big Bird","You are both large and beloved by children"],
-        ["Tony Stark","Bruce Wayne","You are both billionaires in a suit of armour"],
-        ["Frankenstein's Monster","Pinocchio","You were both made, not born, and want to be real"],
-        ["Bart Simpson","Dennis the Menace","You are both a menace with a slingshot"],
-        ["Katniss Everdeen","Legolas","You are both very good with a bow"],
-        ["Kirby","Pac-Man","You both survive entirely by eating things"],
-        ["Gollum","Dobby","You are both small, wretched, and obsessed with an item of clothing or jewellery"],
-        ["Optimus Prime","Iron Giant","You are both huge good robots who sacrifice yourselves"],
-        ["Bugs Bunny","Jerry","You are both the small one who always wins"],
-        ["Anakin Skywalker","Macbeth","You were both good until a prophecy went to your head"],
-        ["Ron Swanson","Hank Hill","You are both men with very strong opinions about propane and meat"],
-        ["Edward Scissorhands","Wolverine","You both have blades for hands"],
-        ["Sailor Moon","Wonder Woman","You are both iconic female heroes with a tiara"],
-        ["Rick Sanchez","Doc Brown","You are both mad scientists with a time-travelling vehicle"],
-        ["Jack Sparrow","Luffy","You are both pirate captains in a silly hat"],
-        ["Mr. Bean","Charlie Chaplin","You are both comedians who barely speak"],
-        ["The Terminator","RoboCop","You are both cyborg cops from the eighties"],
-        ["Eeyore","Marvin the Paranoid Android","You are both clinically depressed"],
-        ["Aang","Korra","You are both the Avatar"],
-        ["Lightning McQueen","Speed Racer","You are both a racing car protagonist"],
-        ["Willy Wonka","Ronald McDonald","You both sell food and are deeply unsettling"],
-        ["Godzilla","King Kong","You are both giant monsters who fought each other"],
-        ["Bob Ross","Mister Rogers","You are both the gentlest man on television"],
-        ["Beetlejuice","Genie","You are both chaotic spirits who grant wishes badly"],
-        ["Spider-Man","Ant-Man","You are both named after a bug"],
-        ["Tintin","Nancy Drew","You are both teenage detectives"],
-        ["Gordon Ramsay","Remy the Rat","You are both chefs who yell about food"],
-        ["The Grinch","Ebenezer Scrooge","You both hate Christmas until you don't"],
-        ["Pennywise","The Babadook","You are both a monster in a children's story"],
-        ["Bender","C-3PO","You are both shiny sarcastic robots"],
-        ["Legolas","Hawkeye","You are both the archer on a team of stronger people"],
-        ["Sasuke Uchiha","Zuko","You both defected over your brother and your dad, then came back"],
-        ["Cruella de Vil","Miranda Priestly","You are both terrifying women in the fashion world"],
-        ["Ash Williams","Ripley","You both fight monsters and lose people you like"],
-        ["Winnie the Pooh","Yogi Bear","You are both bears who want food they shouldn't have"],
-        ["Freddy Krueger","Jason Voorhees","You are both slasher villains with a signature weapon"],
-        ["Doraemon","Felix the Cat","You are both cats with a magic bag"],
-        ["Vision","Data","You are both androids trying to be human"],
-        ["Peter Parker","Clark Kent","You are both reporters with a secret"],
-        ["Hiccup","Daenerys Targaryen","You both ride a dragon"],
-        ["Popeye","Asterix","You both get super strength from a substance"],
-        ["Tyler Durden","The Joker","You are both an agent of chaos with a philosophy"],
-        ["Lisa Simpson","Daria Morgendorffer","You are both the smart cynical girl in a dumb town"],
-        ["Ariel","Elsa","You are both princesses with a signature power ballad"],
-        ["Frodo","Sam","You are both hobbits who walked to Mordor"],
-        ["Boba Fett","Predator","You are both bounty hunters in a helmet"],
-        ["Snow White","Sleeping Beauty","You both fell asleep and got kissed about it"],
-        ["Cartman","Peter Griffin","You are both fat, loud, and the worst person in the show"],
-        ["Bruce Lee","Neo","You both said 'I know kung fu' in one way or another"],
-        ["The Mandalorian","Batman","You both adopted a small orphan and never take the mask off"],
-        ["SpongeBob","Patrick Star","You are both sea creatures and best friends"],
-        ["Voldemort","Sauron","You are both a dark lord who lost your body"],
-        ["Nick Fury","Professor X","You both recruit gifted people into a team"],
-        ["Sailor Moon","Usagi Tsukino","You are the same person and you're going to feel silly"],
-        ["Guts","Kratos","You are both extremely angry men with a giant weapon"],
-        ["Winnie the Pooh","Paddington","You are both English bears who love a specific food"],
-        ["Bane","Darth Vader","You are both huge villains with a breathing problem"],
-        ["Belle","Hermione Granger","You both love books more than people"],
-        ["Zoro","Kenshin Himura","You are both swordsmen in an anime with a distinctive scar or hair"],
-        ["Timon","Pumbaa","You are both the comic-relief duo in the same film"],
-        ["Han Solo","Malcolm Reynolds","You are both roguish captains of a beat-up spaceship"],
-        ["The Doctor","Rick Sanchez","You both travel time with a reluctant companion"],
-        ["Ferris Bueller","Tom Sawyer","You both skipped out on your responsibilities and got away with it"],
-        /* ── MISDIRECTION: clue is true, but not the way you'd assume ── */
-        ["Mewtwo","Toad","You are both from the same video game"],
-        ["Solid Snake","Sonic the Hedgehog","You are both from the same video game"],
-        ["Ryu","Pikachu","You are both from the same video game"],
-        ["Cloud Strife","Kirby","You are both from the same video game"],
-        ["Abraham Lincoln","Nikola Tesla","You are both in the same video game"],
-        ["Ghandi","Cleopatra","You are both in the same video game"],
-        ["Bigfoot","Sasquatch","You are the same thing and one of you will be furious"],
-        ["Michael Jordan","Bugs Bunny","You are both in the same film"],
-        ["Kobe Bryant","Muggsy Bogues","You are both in the same film"],
-        ["A Velociraptor","Jeff Goldblum","You are both in the same film"],
-        ["Napoleon","Bill S. Preston","You are both in the same film"],
-        ["Genghis Khan","Sigmund Freud","You are both in the same film"],
-        ["Elvis Presley","Richard Nixon","You are both in the same photograph"],
-        ["Marilyn Monroe","Arthur Miller","You were both married to each other"],
-        ["Andre the Giant","Princess Bride's Fezzik","You are the same man"],
-        ["Laika the dog","Yuri Gagarin","You have both been to space"],
-        ["Ham the chimpanzee","Alan Shepard","You have both been to space"],
-        ["Ronald Reagan","Bonzo the chimpanzee","You were both in the same film"],
-        ["A tardigrade","Buzz Aldrin","You have both survived in space"],
-        ["Steve Jobs","Ashton Kutcher","You have both played Steve Jobs"],
-        ["Napoleon","Josephine","You were both married to each other"],
-        ["A pigeon","B.F. Skinner","You were both involved in the same experiment"],
-        ["Pavlov's dog","A pigeon","You are both famous for being trained"],
-        ["Balto","Togo","You both ran the same emergency delivery and only one got the credit"],
-        ["Dolly the sheep","Ian Wilmut","One of you made the other"],
-        ["Koko the gorilla","Robin Williams","You have met each other"],
-        ["Michael Jackson","Bubbles","You have met each other"],
-        ["Alexander the Great","Bucephalus","You have met each other"],
-        ["Caligula","Incitatus","One of you tried to make the other a senator"],
-        ["Paul Revere","Brown Beauty","You made the same famous ride"],
-        ["Winston Churchill","Rufus","You have met each other"],
-        ["Cleopatra","An asp","You have met each other, briefly"],
-
-        /* ── ANIMALS: real, famous, and often assumed fictional ── */
-        ["Punxsutawney Phil","Groundhog Day's Bill Murray","You are both stuck in February 2nd"],
-        ["Cecil the lion","Simba","You are both lions and one of you is real"],
-        ["Keiko the orca","Willy","You are the same whale"],
-        ["Hachiko","Greyfriars Bobby","You are both dogs who waited for a dead man"],
-        ["Lonesome George","The Dodo","You are both the end of your species"],
-        ["Clever Hans","A calculator","You were both believed to do maths"],
-        ["An axolotl","Peter Pan","Neither of you will grow up"],
-        ["A tardigrade","Wolverine","You are both nearly impossible to kill"],
-        ["A mantis shrimp","Muhammad Ali","You are both famous for a punch"],
-        ["An octopus","Sherlock Holmes","You are both alarmingly clever problem-solvers"],
-        ["A honey badger","Wolverine","You are both small, mean, and won't stop"],
-        ["A platypus","Perry the Platypus","You are both platypuses and one of you is a spy"],
-        ["A pistol shrimp","A supernova","You both produce impossible amounts of heat"],
-        ["Jonathan the tortoise","Queen Victoria","You were both alive at the same time"],
-        ["A blue whale","A brontosaurus","You are both bigger than people expect"],
-        ["An immortal jellyfish","Dracula","Neither of you dies properly"],
-        ["Tardar Sauce","Garfield","You are both cats who look furious"],
-        ["A naked mole rat","Kim Possible's Rufus","You are both naked mole rats"],
-        ["A crow","A chimpanzee","You both use tools"],
-        ["A raven","Edgar Allan Poe","You have appeared together"],
-        ["A pig","Winston Churchill","One of you said dogs look up to us and pigs treat us as equals"],
-        ["A cane toad","Australia","One of you was a terrible idea for the other"],
-
-        /* ── HISTORICAL: the misdirection is usually the era ── */
-        ["Cleopatra","The Moon Landing","You are closer in time to each other than to the pyramids"],
-        ["Cleopatra","The invention of Pizza Hut","You are closer in time to one than the other, and it's not the one you think"],
-        ["The last woolly mammoth","The Great Pyramid","You existed at the same time"],
-        ["Anne Frank","Martin Luther King Jr.","You were born in the same year"],
-        ["Oxford University","The Aztec Empire","One of you is older than the other, and it's not the one you think"],
-        ["Harriet Tubman","Vincent van Gogh","You were alive at the same time"],
-        ["Queen Elizabeth II","Marilyn Monroe","You were born in the same year"],
-        ["Nintendo","The Ottoman Empire","You existed at the same time"],
-        ["Jack the Ripper","Vincent van Gogh","You were active at the same time"],
-        ["Abraham Lincoln","Karl Marx","You have written to each other"],
-        ["Ulysses S. Grant","Mark Twain","One of you published the other"],
-        ["Nikola Tesla","Mark Twain","You were friends"],
-        ["Charlie Chaplin","Helen Keller","You were friends"],
-        ["Marlon Brando","Wally Cox","You were best friends and nobody believes it"],
-        ["Hedy Lamarr","Wi-Fi","One of you invented the other"],
-        ["Alan Turing","Snow White","One of you may have inspired the other's death"],
-        ["Isaac Newton","An alchemist","You are the same person"],
-        ["Winston Churchill","A Nobel Prize in Literature","One of you won the other"],
-        ["Theodore Roosevelt","A bear","One of you is named after the other"],
-        ["Napoleon","A rabbit","One of you was defeated by a swarm of the other"],
-        ["Rasputin","A very large amount of poison","One of you failed to kill the other"],
-        ["Julius Caesar","A caesarean section","You are not named after each other, despite everything"],
-        ["The Berlin Wall","Windows 95","One of you is older, and it's closer than you think"],
-        ["Betty White","Sliced bread","One of you is older than the other"],
-        ["Harvard University","Calculus","One of you predates the other"],
-        ["Genghis Khan","0.5% of all men alive","You are related"],
-        ["Emperor Norton","The Emperor of the United States","You are the same man and he was allowed to keep doing it"],
-
-        /* ── SAME-PERSON / SAME-THING traps ── */
-        ["Samuel Clemens","Mark Twain","You are the same person"],
-        ["Cassius Clay","Muhammad Ali","You are the same person"],
-        ["Norma Jean","Marilyn Monroe","You are the same person"],
-        ["Stefani Germanotta","Lady Gaga","You are the same person"],
-        ["The Morning Star","The Evening Star","You are the same object"],
-        ["Istanbul","Constantinople","You are the same city"],
-        ["Bombay","Mumbai","You are the same city"],
-        ["A peanut","A legume","You are the same thing and not a nut"],
-        ["A tomato","A berry","You are the same thing and not a vegetable"],
-        ["A strawberry","Not a berry","You are the thing you are not"],
-
-        /* ── SHARED-ACTOR / SHARED-VOICE traps ── */
-        ["Darth Vader","Mufasa","You have the same voice"],
-        ["Gandalf","Magneto","You are played by the same two men, depending"],
-        ["Bugs Bunny","Daffy Duck","You have the same voice"],
-        ["Homer Simpson","Krusty the Clown","You have the same voice"],
-        ["Frodo Baggins","Gollum","You are both played by a Hollywood actor and one of you is not who you think"],
-        ["Voldemort","The King's Speech's King George VI","You are the same actor"],
-        ["Sherlock Holmes","Smaug","You are the same actor"],
-        ["Wednesday Addams","Catwoman","You are the same actress"],
-        ["Hermione Granger","Belle","You are the same actress"],
-        ["Neo","Ted Logan","You are the same actor"],
-        ["Jack Sparrow","Willy Wonka","You are the same actor"],
-        ["Wolverine","P.T. Barnum","You are the same actor"],
-        ["The Joker","Patrick Bateman","You are the same actor"],
-        ["Loki","Hamlet","You are the same actor"],
-
-        /* ── CATEGORY TRAPS: the clue is a technicality ── */
-        ["Die Hard","A Christmas film","One of you is arguably the other"],
-        ["A hot dog","A sandwich","One of you may or may not be the other"],
-        ["Ketchup","A smoothie","You are both technically the same category"],
-        ["A whale","A fish","One of you is not the other, despite appearances"],
-        ["A koala","A bear","One of you is not the other, despite the name"],
-        ["A panda","A raccoon","You are more closely related than you'd like"],
-        ["A hyena","A cat","You are more closely related than you look"],
-        ["A mushroom","An animal","One of you is closer to the other than to a plant"],
-        ["Sonic the Hedgehog","A real hedgehog","One of you is blue for no reason"],
-        ["A guinea pig","Guinea","You have nothing to do with each other"],
-        ["A french fry","France","You have nothing to do with each other"],
-        ["Danish pastry","Denmark","You have less to do with each other than advertised"],
-        ["Chicken tikka masala","Britain","One of you invented the other"],
-        ["Fortune cookies","China","You did not come from each other"],
-
-        /* ── FIENDISH: the link is oblique and you will be here a while ── */
-        ["Sonic the Hedgehog","Michael Jackson","One of you may have written music for the other"],
-        ["Alfred Hitchcock","A bird","One of you has a well-documented fear of the other"],
-        ["Napoleon","Tetris","One of you has a complex named after him and it's not the one who was short"],
-        ["A duck","An echo","One of you supposedly doesn't produce the other, incorrectly"],
-        ["Vincent van Gogh","One painting sold in his lifetime","You are a very sad pair of facts"],
-        ["Van Gogh's ear","Gauguin","One of you may be responsible for the other"],
-        ["Nikola Tesla","A pigeon","You were in love"],
-        ["Salvador Dalí","An anteater","You went for walks together"],
-        ["Lord Byron","A bear","You kept the other at university out of spite"],
-        ["Beethoven","Deafness","You wrote your best work after meeting the other"],
-        ["A stopped clock","Miss Havisham","You are both stuck at the same moment"],
-        ["Mozart","A starling","You owned the other and it could sing your concerto"],
-        ["Marie Curie","Her own notebooks","One of you is still dangerously radioactive"],
-        ["The Eiffel Tower","A temporary structure","One of you was supposed to be the other"],
-        ["Mount Everest","A shellfish","One of you contains fossils of the other"],
-        ["A banana","A human","You share about half of your DNA"],
-        ["Cleopatra","A Greek","One of you was the other, contrary to popular belief"],
-        ["The Hundred Years' War","116 years","You are the same event and it was badly named"],
-        ["The Holy Roman Empire","None of those three words","You are famously neither"],
-        ["Ringo Starr","The best drummer in the Beatles","John Lennon allegedly denied you were even that"],
-    ];
-
-    /* ---------- state ---------- */
-    let current = null;
-    let myRole = null;
-
-    /* ---------- helpers ---------- */
+<script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     const $ = id => document.getElementById(id);
-    const screens = ["home","setup","hold"];
-    function show(id){ screens.forEach(s => $(s).classList.toggle("on", s===id)); }
-    function toast(msg){
-        const t = $("toast"); t.textContent = msg; t.classList.add("on");
-        clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 1800);
-    }
+    const SCREENS = ["config","home","join","lobby","hold"];
+    function show(id){ SCREENS.forEach(s=>$(s).classList.toggle("on",s===id)); }
+    function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"),1800); }
+    const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+    function uuid(){return crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=="x"?r:(r&0x3|0x8);return v.toString(16)});}
 
-    /* Encode a round into a URL. Player 1's link carries the character
-       Player 1 must GUESS — which is PAIRS[i][0]. Neither link contains
-       the other person's answer, so an accidental open only spoils yourself. */
-    function makeLink(pairIndex, role){
-        const [a,b,clue] = PAIRS[pairIndex];
-        const mine = role === 1 ? a : b;
-        const payload = btoa(unescape(encodeURIComponent(JSON.stringify({n:mine, c:clue, r:role}))));
-        return location.origin + location.pathname + "#" + payload;
-    }
-    function readLink(){
-        if(!location.hash || location.hash.length < 2) return null;
-        try{
-            return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
-        }catch(e){ return null; }
-    }
+    let CLIENT_ID=store.get("fh_client"); if(!CLIENT_ID){CLIENT_ID=uuid();store.set("fh_client",CLIENT_ID);}
+    let TMDB=store.get("fh_tmdb")||"";
 
-    async function share(url, label){
-        if(navigator.share){
-            try{ await navigator.share({title:"On Your Forehead", text:label, url}); return; }
-            catch(e){ if(e.name === "AbortError") return; }
-        }
-        try{ await navigator.clipboard.writeText(url); toast("Link copied — paste it to them"); }
-        catch(e){ prompt("Copy this link:", url); }
-    }
+    let sb=null;
+    function initClient(){const url=store.get("fh_url"),key=store.get("fh_key");if(!url||!key||!store.get("fh_tmdb"))return false;sb=createClient(url,key,{realtime:{params:{eventsPerSecond:5}}});TMDB=store.get("fh_tmdb");return true;}
 
-    /* Wikipedia lead image, with a clean text-only fallback. */
-    async function loadPortrait(name){
-        const box = $("portrait");
-        box.innerHTML = '<p class="none">Loading likeness…</p>';
-        try{
-            const r = await fetch(
-                "https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(name),
-                {headers:{Accept:"application/json"}}
-            );
-            if(!r.ok) throw 0;
-            const d = await r.json();
-            const src = (d.originalimage && d.originalimage.source) || (d.thumbnail && d.thumbnail.source);
-            if(!src) throw 0;
-            const img = new Image();
-            img.alt = "";                      // name is already on screen
-            img.onload = () => { box.innerHTML = ""; box.appendChild(img); };
-            img.onerror = () => { box.innerHTML = '<p class="none">No picture found — the name will do</p>'; };
-            img.src = src;
-        }catch(e){
-            box.innerHTML = '<p class="none">No picture found — the name will do</p>';
-        }
-    }
+    let sessionId=null,playerId=null,code=null,isHost=false,channel=null,lastStatus=null,myChar=null,hideNames=false;
 
-    /* ---------- deal flow (the phone that starts the round) ---------- */
-    function deal(){
-        const i = Math.floor(Math.random() * PAIRS.length);
-        current = i;
-        $("setupClue").textContent = PAIRS[i][2];
-        show("setup");
-    }
-    $("dealBtn").onclick = deal;
-    $("reDeal").onclick = deal;
-
-    document.querySelectorAll(".linkrow button").forEach(b => {
-        b.onclick = () => {
-            const role = Number(b.dataset.p);
-            share(makeLink(current, role), "Player " + role + " — open only this one");
-        };
-    });
-
-    /* ---------- receive flow (the phone that opens a link) ---------- */
-    const incoming = readLink();
-    if(incoming){
-        myRole = incoming;
-        show("hold");
-    }
-
-    $("showBtn").onclick = () => {
-        $("revealWho").textContent = "Player " + myRole.r;
-        $("revealName").textContent = myRole.n;
-        $("revealClue").textContent = myRole.c;
-        $("reveal").classList.add("on");
-        $("flipHint").classList.add("on");
-        loadPortrait(myRole.n);
+    $("cfgSave").onclick=()=>{
+        const url=$("cfgUrl").value.trim().replace(/\/+$/,""),key=$("cfgKey").value.trim(),tm=$("cfgTmdb").value.trim();
+        if(!/^https:\/\/.+\.supabase\.co$/.test(url)){$("cfgErr").textContent="That doesn't look like a Supabase URL.";return;}
+        if(key.length<20){$("cfgErr").textContent="That anon key looks too short.";return;}
+        if(tm.length<10){$("cfgErr").textContent="That TMDB key looks too short.";return;}
+        store.set("fh_url",url);store.set("fh_key",key);store.set("fh_tmdb",tm);
+        if(initClient())show("home");
     };
 
-    $("doneBtn").onclick = () => {
-        $("reveal").classList.remove("on");
-        $("flipHint").classList.remove("on");
-        location.hash = "";
-        location.reload();
+    // hide-names toggle
+    let hideChoice=false;
+    $("hideToggle").onclick=()=>{hideChoice=!hideChoice;$("hideToggle").classList.toggle("on",hideChoice);$("hideBox").textContent=hideChoice?"✓":"";};
+
+    $("toJoin").onclick=()=>{$("joinErr").textContent="";show("join");};
+    $("backHome").onclick=()=>show("home");
+
+    $("createBtn").onclick=async()=>{
+        const name=$("homeName").value.trim();
+        if(!name){$("homeErr").textContent="Enter your name first.";return;}
+        $("homeErr").textContent="";$("createBtn").disabled=true;
+        const {data,error}=await sb.rpc("create_session",{p_client_id:CLIENT_ID,p_name:name,p_hide_names:hideChoice});
+        $("createBtn").disabled=false;
+        if(error){$("homeErr").textContent=error.message;return;}
+        const r=data[0];sessionId=r.session_id;code=r.code;playerId=r.player_id;isHost=true;hideNames=hideChoice;
+        enterLobby();
     };
+
+    $("joinBtn").onclick=async()=>{
+        const name=$("joinName").value.trim(),c=$("joinCode").value.trim().toUpperCase();
+        if(!name){$("joinErr").textContent="Enter your name.";return;}
+        if(c.length<4){$("joinErr").textContent="Enter the code you were given.";return;}
+        $("joinErr").textContent="";$("joinBtn").disabled=true;
+        const {data,error}=await sb.rpc("join_session",{p_code:c,p_client_id:CLIENT_ID,p_name:name});
+        $("joinBtn").disabled=false;
+        if(error){$("joinErr").textContent=error.message;return;}
+        const r=data[0];sessionId=r.session_id;playerId=r.player_id;isHost=r.is_host;code=c;hideNames=r.hide_names;
+        enterLobby();
+    };
+
+    async function enterLobby(){
+        $("lobbyCode").textContent=code;
+        $("lobbyRole").textContent=isHost?"You are the host":"Lobby";
+        $("startBtn").style.display=isHost?"":"none";
+        $("lobbyNote").textContent=(isHost?"Start once your second player has joined.":"Waiting for the host to start.")+(hideNames?" Names are hidden this game.":"");
+        show("lobby");await refreshRoster();subscribe();
+    }
+
+    async function refreshRoster(){
+        const {data:players}=await sb.from("players").select("name,is_host,joined_at").eq("session_id",sessionId).order("joined_at");
+        const list=$("rosterList");list.innerHTML="";
+        (players||[]).forEach(p=>{const row=document.createElement("div");row.className="prow";
+            row.innerHTML=`<span class="pdot"></span><span class="pname"></span>`+(p.is_host?`<span class="ptag">Host</span>`:``);
+            row.querySelector(".pname").textContent=p.name;list.appendChild(row);});
+        if(isHost)$("startBtn").disabled=(players||[]).length<2;
+    }
+
+    function subscribe(){
+        if(channel)sb.removeChannel(channel);
+        channel=sb.channel("sess:"+sessionId)
+            .on("postgres_changes",{event:"*",schema:"public",table:"players",filter:"session_id=eq."+sessionId},refreshRoster)
+            .on("postgres_changes",{event:"UPDATE",schema:"public",table:"sessions",filter:"id=eq."+sessionId},({new:row})=>onSessionChange(row))
+            .subscribe();
+    }
+
+    async function onSessionChange(row){
+        lastStatus=row.status;
+        if(row.status==="active"){await enterRound();}
+        else if(row.status==="lobby"){hideReveal();show("lobby");await refreshRoster();}
+    }
+
+    /* ---------- image resolution ---------- */
+    async function resolveImage(src,q,mtype){
+        try{
+            if(src==="wiki"){
+                const r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(q.replace(/ /g,"_")),{headers:{Accept:"application/json"}});
+                if(!r.ok)return null;
+                const d=await r.json();
+                return (d.originalimage&&d.originalimage.source)||(d.thumbnail&&d.thumbnail.source)||null;
+            } else {
+                // TMDB: search movie/tv -> poster; fallback person -> profile
+                const kind=(mtype==="tv")?"tv":(mtype==="movie")?"movie":"person";
+                const u="https://api.themoviedb.org/3/search/"+kind+"?api_key="+encodeURIComponent(TMDB)+"&query="+encodeURIComponent(q);
+                const r=await fetch(u);if(!r.ok)return null;
+                const d=await r.json();const hit=(d.results||[])[0];if(!hit)return null;
+                const path=hit.poster_path||hit.profile_path||hit.backdrop_path;
+                return path?("https://image.tmdb.org/t/p/w780"+path):null;
+            }
+        }catch(e){return null;}
+    }
+    function preload(url){return new Promise(res=>{const i=new Image();i.onload=()=>res(true);i.onerror=()=>res(false);i.src=url;});}
+
+    /* ---------- host: draw + resolve + autoskip loop ---------- */
+    $("startBtn").onclick=async()=>{
+        $("lobbyErr").textContent="";$("startBtn").disabled=true;
+        $("lobbyNote").textContent="Finding a pair with pictures…";
+        try{
+            let committed=false;
+            for(let attempt=0;attempt<25 && !committed;attempt++){
+                const {data,error}=await sb.rpc("draw_pair",{p_session_id:sessionId,p_client_id:CLIENT_ID});
+                if(error) throw error;
+                const p=data[0];
+                const [ua,ub]=await Promise.all([resolveImage(p.a_src,p.a_q,p.a_mtype),resolveImage(p.b_src,p.b_q,p.b_mtype)]);
+                if(!ua||!ub) continue;                       // autoskip: this pair already marked used
+                const [oka,okb]=await Promise.all([preload(ua),preload(ub)]);
+                if(!oka||!okb) continue;                      // autoskip on broken image
+                await sb.rpc("commit_round",{p_session_id:sessionId,p_client_id:CLIENT_ID,p_pair_id:p.pair_id});
+                committed=true;
+            }
+            if(!committed){$("lobbyErr").textContent="Couldn't find a pair with working pictures. Pool may be exhausted.";}
+        }catch(e){$("lobbyErr").textContent=e.message||String(e);}
+        $("startBtn").disabled=false;
+        $("lobbyNote").textContent=isHost?"Start once your second player has joined.":"";
+    };
+
+    $("leaveBtn").onclick=async()=>{if(channel){sb.removeChannel(channel);channel=null;}sessionId=playerId=code=null;isHost=false;lastStatus=null;show("home");};
+
+    /* ---------- round ---------- */
+    async function enterRound(){
+        const {data,error}=await sb.rpc("get_my_character",{p_session_id:sessionId,p_client_id:CLIENT_ID});
+        if(error){toast(error.message);return;}
+        hideReveal();
+        if(!data||!data.length){
+            myChar=null;$("holdClue").textContent="You're watching this round.";
+            $("showBtn").textContent="Waiting for the round to end…";$("showBtn").disabled=true;show("hold");return;
+        }
+        myChar=data[0];hideNames=myChar.hide_names;
+        $("holdClue").textContent=myChar.clue;
+        $("showBtn").textContent="I'm holding it up — reveal";$("showBtn").disabled=false;show("hold");
+    }
+
+    $("showBtn").onclick=async()=>{
+        if(!myChar)return;
+        $("revealWho").textContent="Player "+myChar.slot;
+        $("revealName").textContent=myChar.name;
+        $("revealName").classList.toggle("hidden",!!hideNames);
+        $("revealClue").textContent=myChar.clue;
+        $("reveal").classList.add("on");$("endhint").classList.toggle("on",isHost);
+        const box=$("portrait");box.innerHTML='<p class="none">Loading…</p>';
+        const url=await resolveImage(myChar.src,myChar.q,myChar.mtype);
+        if(url){const img=new Image();img.alt="";img.onload=()=>{box.innerHTML="";box.appendChild(img);};img.onerror=()=>{box.innerHTML='<p class="none">Picture unavailable</p>';};img.src=url;}
+        else box.innerHTML='<p class="none">Picture unavailable</p>';
+    };
+
+    function hideReveal(){$("reveal").classList.remove("on");$("endhint").classList.remove("on");$("portrait").innerHTML="";}
+    $("reveal").addEventListener("dblclick",async()=>{if(!isHost){toast("Only the host can end the round");return;}await sb.rpc("end_round",{p_session_id:sessionId,p_client_id:CLIENT_ID});});
+
+    if(initClient())show("home");else show("config");
 </script>
 </body>
 </html>
